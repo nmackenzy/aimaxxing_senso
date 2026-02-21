@@ -28,13 +28,14 @@ class ServerCallbacks : public BLEServerCallbacks {
 };
 
 void setup() {
+  
   //for DEBUGGING
-  Serial0.begin(115200);                           //serial monitor
+  Serial.begin(115200);                           //serial monitor
 
   BLEDevice::init("ESP32_GasSensor");             //setting the bluetooth device name
   
   BLEServer *pServer = BLEDevice::createServer(); //creating BLE server
-  pServer->setCallbacks(new ServerCallback());    //attach connect/disconnect handlers
+  pServer->setCallbacks(new ServerCallbacks());    //attach connect/disconnect handlers
 
   //service container
   BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -48,15 +49,17 @@ void setup() {
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->start();
 
-  Serial0.println("Waiting for connection...");
+  Serial.println("Waiting for connection...");
 }
 
 void loop() {
+  Serial.println("hello");
+  
   if (deviceConnected) 
   {
     int sensorVal = analogRead(34);               //read gas sensor on pin 34
     String val = String(sensorVal);               //convert num to str
-    pCharacteristic->setBalue(value.c_str());     //set the val to send
+    pCharacteristic->setValue(value.c_str());     //set the val to send
     pCharacteristic->notify();                    //push val to the app
     delay(SEC_TO_NEXT_READING);                   //wait no. of sec before next reading
   }
