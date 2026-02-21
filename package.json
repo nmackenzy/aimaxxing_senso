@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "react-native-ble-plx": "^3.5.1",
+    "react-native-quick-base64": "^2.2.2"
+  }
+}
