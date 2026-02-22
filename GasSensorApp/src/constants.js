@@ -1,6 +1,6 @@
 //for UUIDs, thresholds, and intervals
-export const SERVICE_UUID = '3e35c214-47fa-4a79-bbd3-904d9d243cda';
-export const CHAR_UUID    = '56da9e39-0d4e-4c0f-a2be-52c96ebca9f5';
+export const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+export const CHAR_UUID    = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 
 export const CO_THRESHOLD    = 50;   // adjust to your sensor's units
 export const CH4_THRESHOLD   = 100;  // adjust to your sensor's units

@@ -32,11 +32,11 @@
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSBluetoothAlwaysUsageDescription</key>
-		<string>App needs Bluetooth to connect to gas sensor</string>
-		<key>NSBluetoothPeripheralUsageDescription</key>
-		<string>App needs Bluetooth to connect to gas sensor</string>
 	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>App needs Bluetooth to connect to gas sensor</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>App needs Bluetooth to connect to gas sensor</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>RCTNewArchEnabled</key>

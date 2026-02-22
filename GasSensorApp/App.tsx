@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import { atob } from 'react-native-quick-base64';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,9 +10,8 @@ import AlertLog from './src/components/AlertLog';
 import ExportButton from './src/components/ExportButton';
 import useMockData from './src/mockData';
 
-const manager = new BleManager();
-
 export default function App() {
+  const manager                       = useRef(null);
   const [connected, setConnected]     = useState(false);
   const [coData, setCoData]           = useState([0]);
   const [ch4Data, setCh4Data]         = useState([0]);
@@ -22,39 +21,67 @@ export default function App() {
   const lastUpdateTime                = useRef(0);
   const [scanning, setScanning]       = useState(false);
   const [mockMode, setMockMode]       = useState(false);
-  const reconnect = () => {
-    setConnected(false);
-    setScanning(true);
-    manager.startDeviceScan(null, null, (error, device) => {
-      if (error) { console.log(error); setScanning(false); return; }
-      if (device?.name === 'ESP32_GasSensor') {
-        manager.stopDeviceScan();
-        device.connect()
-          .then(d => d.discoverAllServicesAndCharacteristics())
-          .then(d => {
-            setConnected(true);
-            setScanning(false);
-            d.monitorCharacteristicForService(SERVICE_UUID, CHAR_UUID, (err, char) => {
-              if (char?.value) {
-                const now = Date.now();
-                if (now - lastUpdateTime.current >= UPDATE_INTERVAL) {
-                  lastUpdateTime.current = now;
-                  const raw = atob(char.value);
-                  const parts = raw.split(',');
-                  const co  = parseFloat(parts[0].split(':')[1]);
-                  const ch4 = parseFloat(parts[1].split(':')[1]);
-                  setLastReading(new Date().toLocaleTimeString());
-                  setCoData(prev  => [...prev.slice(-MAX_POINTS), co]);
-                  setCh4Data(prev => [...prev.slice(-MAX_POINTS), ch4]);
-                  const time = new Date().toLocaleTimeString();
-                  if (co  >= CO_THRESHOLD)  setCoLog(prev  => [`${time} — CO: ${co}`,   ...prev.slice(0, 9)]);
-                  if (ch4 >= CH4_THRESHOLD) setCh4Log(prev => [`${time} — CH4: ${ch4}`, ...prev.slice(0, 9)]);
-                }
-              }
-            });
-          });
+
+  const handleData = (char) => {
+    if (char?.value) {
+      const now = Date.now();
+      if (now - lastUpdateTime.current >= UPDATE_INTERVAL) {
+        lastUpdateTime.current = now;
+        const raw   = atob(char.value).trim();
+        const parts = raw.split(',');
+        const co    = parseFloat(parts[0].split(':')[1]);
+        const ch4   = parseFloat(parts[1].split(':')[1]);
+        setLastReading(new Date().toLocaleTimeString());
+        setCoData(prev  => [...prev.slice(-MAX_POINTS), co]);
+        setCh4Data(prev => [...prev.slice(-MAX_POINTS), ch4]);
+        const time = new Date().toLocaleTimeString();
+        if (co  >= CO_THRESHOLD)  setCoLog(prev  => [`${time} — CO: ${co}`,   ...prev.slice(0, 9)]);
+        if (ch4 >= CH4_THRESHOLD) setCh4Log(prev => [`${time} — CH4: ${ch4}`, ...prev.slice(0, 9)]);
+      }
+    }
+  };
+
+  const connectToDevice = async (device, onStart?) => {
+    try {
+      console.log('connecting to device...');
+      const connected = await device.connect();
+      console.log('connected, discovering services...');
+      const discovered = await connected.discoverAllServicesAndCharacteristics();
+      console.log('services discovered, setting up monitor...');
+      setConnected(true);
+      if (onStart) onStart();
+      discovered.onDisconnected(() => { setConnected(false); });
+      discovered.monitorCharacteristicForService(SERVICE_UUID, CHAR_UUID, (err, char) => {
+        if (err) { console.log('monitor error:', err); setConnected(false); return; }
+        console.log('received data');
+        handleData(char);
+      });
+    } catch (err) {
+      console.log('connection error:', err);
+      setConnected(false);
+    }
+  };
+
+  const startScan = () => {
+    if (!manager.current) return;
+    manager.current.startDeviceScan(null, null, (error, device) => {
+      if (error) { console.log('scan error:', error); setScanning(false); return; }
+      console.log('found device:', device?.name);
+      if (device?.name === 'GasSensor') {
+        manager.current.stopDeviceScan();
+        connectToDevice(device, () => setScanning(false));
       }
     });
+  };
+
+  const reconnect = () => {
+    console.log('reconnect pressed');
+    setConnected(false);
+    setScanning(true);
+    if (manager.current) {
+      manager.current.stopDeviceScan();
+      startScan();
+    }
   };
 
   useMockData({ mockMode, setCoData, setCh4Data, setLastReading, setCoLog, setCh4Log });
@@ -83,49 +110,40 @@ export default function App() {
   }, [coLog, ch4Log]);
 
   useEffect(() => {
-    manager.startDeviceScan(null, null, (error, device) => {
-      if (error) { console.log(error); return; }
-      if (device?.name === 'ESP32_GasSensor') {
-        manager.stopDeviceScan();
-        device.connect()
-          .then(d => d.discoverAllServicesAndCharacteristics())
-          .then(d => {
-            setConnected(true);
-            d.monitorCharacteristicForService(SERVICE_UUID, CHAR_UUID, (err, char) => {
-              if (char?.value) {
-                const now = Date.now();
-                if (now - lastUpdateTime.current >= UPDATE_INTERVAL) {
-                  lastUpdateTime.current = now;
-                  const raw = atob(char.value);
-                  const parts = raw.split(',');
-                  const co  = parseFloat(parts[0].split(':')[1]);
-                  const ch4 = parseFloat(parts[1].split(':')[1]);
-                  setLastReading(new Date().toLocaleTimeString());
-                  setCoData(prev  => [...prev.slice(-MAX_POINTS), co]);
-                  setCh4Data(prev => [...prev.slice(-MAX_POINTS), ch4]);
-                  const time = new Date().toLocaleTimeString();
-                  if (co  >= CO_THRESHOLD)  setCoLog(prev  => [`${time} — CO: ${co}`,   ...prev.slice(0, 9)]);
-                  if (ch4 >= CH4_THRESHOLD) setCh4Log(prev => [`${time} — CH4: ${ch4}`, ...prev.slice(0, 9)]);
-                }
-              }
-            });
-          });
+    manager.current = new BleManager();
+
+    const subscription = manager.current.onStateChange((state) => {
+      console.log('BLE state:', state);
+      if (state === 'PoweredOn') {
+        subscription.remove();
+        startScan();
       }
-    });
+    }, true);
+
+    return () => {
+      subscription.remove();
+      manager.current?.destroy();
+    };
   }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Image source={require('./assets/logo.png')} style={styles.logo} />
       <Text style={styles.title}>Senso</Text>
+
       {!connected && (
-        <TouchableOpacity 
-          style={[styles.reconnectButton, { backgroundColor: mockMode ? '#e74c3c' : '#7f8c8d' }]} 
-          onPress={() => setMockMode(prev => !prev)}
-        >
-          <Text style={styles.reconnectText}>{mockMode ? 'Stop Mock Data' : 'Start Mock Data'}</Text>
+        <TouchableOpacity style={styles.reconnectButton} onPress={reconnect} disabled={scanning}>
+          <Text style={styles.reconnectText}>{scanning ? 'Scanning...' : 'Reconnect'}</Text>
         </TouchableOpacity>
       )}
+
+      <TouchableOpacity
+        style={[styles.mockButton, { backgroundColor: mockMode ? '#e74c3c' : '#27ae60' }]}
+        onPress={() => setMockMode(prev => !prev)}
+      >
+        <Text style={styles.reconnectText}>{mockMode ? 'Stop Mock Data' : 'Start Mock Data'}</Text>
+      </TouchableOpacity>
+
       <StatusBanner coData={coData} ch4Data={ch4Data} />
       <ExportButton coLog={coLog} ch4Log={ch4Log} />
 
@@ -153,11 +171,11 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: '#fff', paddingTop: 90 },
-  title:     { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 },
-  logo:      { width: 100, height: 100, resizeMode: 'contain', alignSelf: 'center', marginBottom: 10 },
-  status:    { fontSize: 16, color: 'gray', textAlign: 'center', marginBottom: 16 },
-  timestamp: { fontSize: 14, color: 'gray', textAlign: 'center', marginBottom: 8, marginTop: 8 },
+  container:       { padding: 16, backgroundColor: '#fff', paddingTop: 90 },
+  title:           { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 },
+  logo:            { width: 100, height: 100, resizeMode: 'contain', alignSelf: 'center', marginBottom: 10 },
+  timestamp:       { fontSize: 14, color: 'gray', textAlign: 'center', marginBottom: 8, marginTop: 8 },
   reconnectButton: { backgroundColor: '#7f8c8d', padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 6 },
-reconnectText:   { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  mockButton:      { padding: 10, borderRadius: 8, alignItems: 'center', marginVertical: 6 },
+  reconnectText:   { color: '#fff', fontWeight: 'bold', fontSize: 14 },
 });
