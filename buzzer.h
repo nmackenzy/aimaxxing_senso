@@ -3,8 +3,8 @@
 
 const int buzzerPin = A0;
 
-const float GAS1_THRESHOLD = 500.0;
-const float GAS2_THRESHOLD = 500.0;
+const float GAS1_THRESHOLD = 25000.0;
+const float GAS2_THRESHOLD = 1000.0;
 
 void setupBuzzer() {
   pinMode(buzzerPin, OUTPUT);
