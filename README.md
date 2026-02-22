@@ -3,105 +3,57 @@
 ---
 # Gas Detection System (Hacked2026)
 
-This project is an Arduino-based gas monitoring system designed to detect and visualize concentrations of Methane (CH4) and Carbon Monoxide (CO). It features real-time data visualization on an OLED display , a buzzer alarm system for safety thresholds , and Bluetooth Low Energy (BLE) integration for mobile app connectivity.
+[cite_start]This project is an Arduino-based gas monitoring system designed to detect and visualize concentrations of Methane (CH4) and Carbon Monoxide (CO)[cite: 1, 3, 5]. [cite_start]It features real-time data visualization on an OLED display [cite: 5][cite_start], a buzzer alarm system for safety thresholds [cite: 6][cite_start], and Bluetooth Low Energy (BLE) integration for mobile app connectivity[cite: 7].
 
 ---
 
 ## Features
 
-* 
-**Dual Gas Sensing**: Monitors two distinct gas types using the MICS-5524 sensor.
-
-
-* 
-**Real-Time OLED Dashboard**: Displays numeric PPM values and a rolling historical line graph for both gases.
-
-
-* 
-**Audible Alarms**: Automatically triggers a buzzer when gas levels exceed safety thresholds.
-
-
-* 
-**BLE Connectivity**: Streams sensor data to a mobile application using the Nordic UART Service (NUS) protocol.
-
-
-* 
-**Advanced Signal Processing**: Converts raw ADC signals into accurate PPM values using calibrated resistance ratios.
-
-
+* [cite_start]**Dual Gas Sensing**: Monitors two distinct gas types using the MICS-5524 sensor[cite: 5].
+* [cite_start]**Real-Time OLED Dashboard**: Displays numeric PPM values and a rolling historical line graph for both gases[cite: 5].
+* [cite_start]**Audible Alarms**: Automatically triggers a buzzer when gas levels exceed safety thresholds[cite: 6].
+* [cite_start]**BLE Connectivity**: Streams sensor data to a mobile application using the Nordic UART Service (NUS) protocol[cite: 7].
+* [cite_start]**Advanced Signal Processing**: Converts raw ADC signals into accurate PPM values using calibrated resistance ratios[cite: 5].
 
 ---
 
 ## Hardware Requirements
 
 | Component | Pin / Connection |
-| --- | --- |
-| **Arduino Nano ESP32** | Main Controller 
-
- |
-| **MICS-5524 Gas Sensor** | ADC_PIN (A7), POWER_PIN (3) 
-
- |
-| **SSD1306 OLED (128x32)** | I2C Interface 
-
- |
-| **Active Buzzer** | A0 
-
- |
+| :--- | :--- |
+| **Arduino Nano ESP32** | Main Controller |
+| **MICS-5524 Gas Sensor** | ADC_PIN (A7), POWER_PIN (3) |
+| **SSD1306 OLED (128x32)** | I2C Interface |
+| **Active Buzzer** | A0 |
 
 ---
 
 ## Project Structure
 
-* 
-**hacked2026.ino**: The main application logic managing the sensor polling, display updates, and BLE timing loops.
-
-
-* 
-**sensor.h**: Handles the MICS-5524 initialization, warm-up sequences, and the mathematical conversion of raw ADC values to PPM.
-
-
-* 
-**OLED.h**: Manages the graphical interface, including the split-screen layout and line graph rendering.
-
-
-* 
-**buzzer.h**: Defines the safety thresholds and controls the alarm state.
-
-
-* 
-**app.h**: Configures the BLE stack, advertising as 'GasSensor' and handling data transmission.
-
-
+* [cite_start]**`hacked2026.ino`**: The main application logic managing the sensor polling, display updates, and BLE timing loops[cite: 1, 2, 4].
+* [cite_start]**`sensor.h`**: Handles the MICS-5524 initialization, warm-up sequences, and the mathematical conversion of raw ADC values to PPM[cite: 1].
+* [cite_start]**`OLED.h`**: Manages the graphical interface, including the split-screen layout and line graph rendering[cite: 1, 5].
+* [cite_start]**`buzzer.h`**: Defines the safety thresholds and controls the alarm state[cite: 1, 6].
+* [cite_start]**`app.h`**: Configures the BLE stack, advertising as "GasSensor" and handling data transmission[cite: 1, 7].
 
 ---
 
 ## Configuration and Calibration
 
-Before deploying, ensure the following constants in sensor.h match your specific hardware environment:
+Before deploying, ensure the following constants in `sensor.h` match your specific hardware environment:
 
-1. **RL_OHMS**: Measure the load resistor on your sensor board (typically 10kOhm).
-2. **R0_OHMS**: Run the sensor in clean air and update this value with the baseline resistance of your specific sensor.
-3. **Alarm Thresholds**: Located in buzzer.h, the default triggers are:
-* 
-**GAS1 (CH4)**: 20,000.0 PPM.
-
-
-* 
-**GAS2 (CO)**: 500.0 PPM.
-
-
-
-
+1.  **`RL_OHMS`**: Measure the load resistor on your sensor board (typically 10kOhm).
+2.  **`R0_OHMS`**: Run the sensor in clean air and update this value with the baseline resistance of your specific sensor.
+3.  **Alarm Thresholds**: Located in `buzzer.h`, the default triggers are:
+    * **GAS1 (CH4)**: 20,000.0 PPM.
+    * **GAS2 (CO)**: 500.0 PPM.
 
 ---
 
 ## Mobile Integration
 
-The system uses the Nordic UART Service (NUS) to broadcast data. You can use any BLE Terminal app to receive data in the following format:
-`GAS1: [value], GAS2: [value]` 
-
-Would you like me to provide a simplified version of the code that outputs the raw R0 value for your calibration step?
+[cite_start]The system uses the Nordic UART Service (NUS) to broadcast data[cite: 7]. You can use any BLE Terminal app to receive data in the following format:
+[cite_start]`GAS1: [value], GAS2: [value]`[cite: 7].
 ---
 # Senso — Gas Monitor App
 
