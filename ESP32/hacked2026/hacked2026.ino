@@ -26,7 +26,7 @@ void loop() {
     // Serial.println(rawADC);
 
     currentGAS1PPM = getGAS1PPM(); // getGAS1PPM(rawADC);
-    currentGAS2PPM = getGAS1PPM(); // getGAS2PPM(rawADC);
+    currentGAS2PPM = getGAS2PPM(); // getGAS2PPM(rawADC);
 
     Serial.print("GAS1: "); Serial.print(currentGAS1PPM, 1); Serial.println(" PPM");
     Serial.print("GAS2: "); Serial.print(currentGAS2PPM, 1); Serial.println(" PPM");

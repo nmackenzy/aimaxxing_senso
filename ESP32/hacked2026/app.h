@@ -14,6 +14,8 @@ void setupApp() {
     Serial.println("BLE init failed!");
     while (1);
   }
+
+  BLE.setDeviceName("GasSensor");
   BLE.setLocalName("GasSensor");
   BLE.setAdvertisedService(uartService);
   uartService.addCharacteristic(txCharacteristic);
